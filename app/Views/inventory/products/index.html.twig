@@ -1,0 +1,81 @@
+{% extends 'layouts/admin.html.twig' %}
+{% import 'partials/admin/icons.html.twig' as icons %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Productos</h1>
+        <p>Administra los productos, su presentación, precio y estado operativo.</p>
+    </div>
+
+    {% if auth_can('products', 'create') %}
+        <a class="btn" href="{{ site_url('products/create') }}">Nuevo producto</a>
+    {% endif %}
+</div>
+
+<section class="card">
+    {% include 'partials/admin/table_search.html.twig' with {
+        action: site_url('products'),
+        clearUrl: site_url('products'),
+        search: search,
+        placeholder: 'Buscar por producto, tipo o estado...'
+    } %}
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Tipo</th>
+                <th>Unidades / empaque</th>
+                <th>Precio</th>
+                <th>Stock actual</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if products is empty %}
+                <tr><td colspan="7" class="empty-state">No hay productos que coincidan con la búsqueda.</td></tr>
+            {% endif %}
+
+            {% for product in products %}
+                <tr>
+                    <td><strong>{{ product.name }}</strong></td>
+                    <td>{{ product.product_type_name }}</td>
+                    <td>{{ product.units_per_package|number_format }}</td>
+                    <td>S/ {{ product.price|number_format(2, '.', ',') }}</td>
+                    <td><strong>{{ product.current_stock|number_format }}</strong></td>
+                    <td>
+                        <span class="badge {{ product.status == 'active' ? 'badge-ok' : 'badge-off' }}">
+                            {{ product.status == 'active' ? 'Activo' : 'Inactivo' }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            {% if auth_can('products', 'edit') %}
+                                <a class="table-action" href="{{ site_url('products/' ~ product.id ~ '/edit') }}" title="Editar producto">{{ icons.icon('edit', 'table-action-icon') }}<span>Editar</span></a>
+                            {% endif %}
+
+                            {% if auth_can('products', 'delete') %}
+                                <form method="post" action="{{ site_url('products/' ~ product.id ~ '/delete') }}"
+                                      data-confirm="El producto ‘{{ product.name }}’ se marcará como inactivo y dejará de estar disponible para nuevos movimientos."
+                                      data-confirm-title="Eliminar producto"
+                                      data-confirm-variant="danger"
+                                      data-confirm-button="Eliminar producto"
+                                      data-confirm-note="Esta eliminación es lógica; el historial del producto se conservará.">
+                                    {{ csrf_field() }}
+                                    <button class="table-action table-action-danger" type="submit" title="Eliminar producto">{{ icons.icon('delete', 'table-action-icon') }}<span>Eliminar</span></button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% include 'partials/admin/pagination.html.twig' %}
+</section>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block content %}
+{% set isEdit = mode == 'edit' %}
+{% set old = flash('old_form') ?? {} %}
+{% set roleId = isEdit ? role.id : 0 %}
+{% set isBuiltinAdmin = isEdit and role.slug == 'administrador' %}
+{% set name = old.name ?? (role.name ?? '') %}
+{% set slug = old.slug ?? (role.slug ?? '') %}
+{% set description = old.description ?? (role.description ?? '') %}
+{% set status = old.status ?? ((role.is_active ?? 1) == 1 ? 'active' : 'inactive') %}
+{% set selectedPermissions = old.permissions ?? (role.module_permissions ?? {}) %}
+
+<div class="page-header">
+    <div>
+        <h1>{{ isEdit ? 'Editar rol' : 'Nuevo rol' }}</h1>
+        <p>Configura el rol y selecciona las acciones permitidas en cada módulo.</p>
+    </div>
+</div>
+
+<section class="card">
+    {% if isBuiltinAdmin %}
+        <div class="alert alert-info">
+            El rol Administrador está protegido. Siempre conserva todos los permisos habilitados por cada módulo.
+        </div>
+    {% endif %}
+
+    <form method="post" action="{{ isEdit ? site_url('admin/roles/' ~ roleId) : site_url('admin/roles') }}">
+        {{ csrf_field() }}
+
+        <div class="form-grid form-grid-2">
+            <div class="field">
+                <label for="name">Nombre</label>
+                <input id="name" name="name" value="{{ name }}" required minlength="3" maxlength="100">
+            </div>
+
+            <div class="field">
+                <label for="slug">Identificador</label>
+                <input id="slug" name="slug" value="{{ slug }}" required minlength="3" maxlength="100" {{ isBuiltinAdmin ? 'readonly' : '' }}>
+                <span class="help">Ejemplo: supervisor_inventario</span>
+            </div>
+
+            <div class="field">
+                <label for="status">Estado</label>
+                <select id="status" name="status" required {{ isBuiltinAdmin ? 'disabled' : '' }}>
+                    <option value="active" {{ status == 'active' ? 'selected' : '' }}>Activo</option>
+                    <option value="inactive" {{ status == 'inactive' ? 'selected' : '' }}>Inactivo</option>
+                </select>
+                {% if isBuiltinAdmin %}
+                    <input type="hidden" name="status" value="active">
+                {% endif %}
+            </div>
+
+            <div class="field field-full">
+                <label for="description">Descripción</label>
+                <textarea id="description" name="description" maxlength="1000">{{ description }}</textarea>
+            </div>
+        </div>
+
+        <div class="section-heading">
+            <div>
+                <h2>Matriz de permisos</h2>
+                <p>Cada módulo muestra únicamente las acciones que tiene habilitadas.</p>
+            </div>
+        </div>
+
+        {% include 'admin/roles/_permission_matrix.html.twig' with {
+            modules: modules,
+            selectedPermissions: selectedPermissions,
+            isBuiltinAdmin: isBuiltinAdmin
+        } %}
+
+        <div class="actions form-actions">
+            <button class="btn" type="submit">{{ isEdit ? 'Guardar cambios' : 'Crear rol' }}</button>
+            <a class="btn btn-secondary" href="{{ site_url('admin/roles') }}">Cancelar</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

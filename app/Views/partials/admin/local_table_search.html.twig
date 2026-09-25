@@ -1,0 +1,18 @@
+{% set tableIdValue = tableId|default('') %}
+{% set placeholderText = placeholder|default('Buscar en la tabla...') %}
+
+<div class="table-toolbar">
+    <div class="table-search-form">
+        <div class="table-search-input-wrap">
+            <span class="table-search-icon" aria-hidden="true"></span>
+            <input
+                class="table-search-input"
+                type="search"
+                placeholder="{{ placeholderText }}"
+                autocomplete="off"
+                data-local-table-search="{{ tableIdValue }}"
+                aria-label="{{ placeholderText }}"
+            >
+        </div>
+    </div>
+</div>

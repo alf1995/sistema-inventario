@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title|default('Sistema de Inventario') }}</title>
+    <link rel="stylesheet" href="{{ asset_url('assets/css/app.css') }}">
+</head>
+<body class="auth-body">
+<main class="auth-container">
+    {% include 'partials/flash_messages.html.twig' %}
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>

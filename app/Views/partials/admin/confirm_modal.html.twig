@@ -1,0 +1,44 @@
+<div class="confirm-modal" data-confirm-modal hidden aria-hidden="true">
+    <button class="confirm-modal-backdrop" type="button" data-confirm-cancel tabindex="-1" aria-label="Cancelar acción"></button>
+
+    <section
+        class="confirm-dialog"
+        data-confirm-dialog
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirm-modal-title"
+        aria-describedby="confirm-modal-message"
+        tabindex="-1"
+    >
+        <div class="confirm-dialog-header">
+            <div class="confirm-dialog-icon" data-confirm-icon aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.3 3.6 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z"/>
+                    <path d="M12 9v4"/>
+                    <path d="M12 17h.01"/>
+                </svg>
+            </div>
+
+            <div class="confirm-dialog-heading">
+                <span class="confirm-dialog-eyebrow">Confirmación requerida</span>
+                <h2 id="confirm-modal-title" data-confirm-title>Confirmar acción</h2>
+            </div>
+
+            <button class="confirm-dialog-close" type="button" data-confirm-cancel aria-label="Cerrar ventana de confirmación">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <path d="M18 6 6 18M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="confirm-dialog-body">
+            <p id="confirm-modal-message" data-confirm-message>¿Deseas continuar?</p>
+            <p class="confirm-dialog-note" data-confirm-note hidden></p>
+        </div>
+
+        <div class="confirm-dialog-actions">
+            <button class="btn btn-secondary confirm-dialog-cancel" type="button" data-confirm-cancel>Cancelar</button>
+            <button class="btn confirm-dialog-submit" type="button" data-confirm-submit>Confirmar</button>
+        </div>
+    </section>
+</div>

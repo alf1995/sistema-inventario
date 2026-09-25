@@ -1,0 +1,50 @@
+<div class="table-wrap permission-matrix-wrap">
+    <table class="permission-matrix">
+        <thead>
+        <tr>
+            <th>Módulo</th>
+            <th class="permission-column">Ver</th>
+            <th class="permission-column">Agregar</th>
+            <th class="permission-column">Editar</th>
+            <th class="permission-column">Eliminar</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for module in modules %}
+            {% set moduleId = module.id %}
+            {% set current = selectedPermissions[moduleId] ?? {} %}
+            <tr>
+                <td>
+                    <strong>{{ module.name }}</strong>
+                    <div class="help"><code>{{ module.slug }}</code></div>
+                </td>
+
+                {% for action in ['view', 'create', 'edit', 'delete'] %}
+                    {% set available = module['allow_' ~ action] == 1 %}
+                    {% set checked = isBuiltinAdmin ? available : (current[action] is defined and current[action] != '0') %}
+                    {% set fieldId = 'permission_' ~ moduleId ~ '_' ~ action %}
+                    <td class="permission-cell">
+                        {% if available %}
+                            <input
+                                class="permission-checkbox"
+                                id="{{ fieldId }}"
+                                type="checkbox"
+                                name="permissions[{{ moduleId }}][{{ action }}]"
+                                value="1"
+                                {{ checked ? 'checked' : '' }}
+                                {{ isBuiltinAdmin ? 'disabled' : '' }}
+                                aria-label="{{ module.name ~ ' - ' ~ action }}"
+                            >
+                            {% if isBuiltinAdmin %}
+                                <input type="hidden" name="permissions[{{ moduleId }}][{{ action }}]" value="1">
+                            {% endif %}
+                        {% else %}
+                            <span class="permission-unavailable" title="Acción no habilitada para este módulo">—</span>
+                        {% endif %}
+                    </td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>

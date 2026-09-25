@@ -1,0 +1,11 @@
+{% extends session_has('auth_user_id') ? 'layouts/admin.html.twig' : 'layouts/auth.html.twig' %}
+
+{% block content %}
+<section class="card card-narrow">
+    <h1>{{ title|default('Acceso denegado') }}</h1>
+    <p class="muted">{{ message|default('No tienes permisos para acceder a este recurso.') }}</p>
+    <div class="actions">
+        <a class="btn" href="{{ site_url(authPaths.dashboard) }}">Volver al dashboard</a>
+    </div>
+</section>
+{% endblock %}

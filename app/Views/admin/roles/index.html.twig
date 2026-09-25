@@ -1,0 +1,83 @@
+{% extends 'layouts/admin.html.twig' %}
+{% import 'partials/admin/icons.html.twig' as icons %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Administración de roles</h1>
+        <p>Asigna permisos por módulo usando la matriz Ver, Agregar, Editar y Eliminar.</p>
+    </div>
+
+    {% if auth_can('roles', 'create') %}
+        <a class="btn" href="{{ site_url('admin/roles/create') }}">Nuevo rol</a>
+    {% endif %}
+</div>
+
+<section class="card">
+    {% include 'partials/admin/local_table_search.html.twig' with {
+        tableId: 'admin-roles-table',
+        placeholder: 'Buscar rol, identificador o estado...'
+    } %}
+
+    <div class="table-wrap">
+        <table id="admin-roles-table">
+            <thead>
+            <tr>
+                <th>Rol</th>
+                <th>Identificador</th>
+                <th>Estado</th>
+                <th>Usuarios</th>
+                <th>Autorizaciones</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for role in roles %}
+                <tr>
+                    <td>
+                        <strong>{{ role.name }}</strong>
+                        {% if role.description|default('') != '' %}
+                            <div class="help">{{ role.description }}</div>
+                        {% endif %}
+                    </td>
+                    <td><code>{{ role.slug }}</code></td>
+                    <td>
+                        <span class="badge {{ role.is_active == 1 ? 'badge-ok' : 'badge-off' }}">
+                            {{ role.is_active == 1 ? 'Activo' : 'Inactivo' }}
+                        </span>
+                    </td>
+                    <td>{{ role.user_count }}</td>
+                    <td>
+                        <strong>{{ role.permission_count }}</strong> permiso(s)
+                        <div class="help">{{ role.module_count }} módulo(s)</div>
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            {% if auth_can('roles', 'edit') %}
+                                <a class="table-action" href="{{ site_url('admin/roles/' ~ role.id ~ '/edit') }}" title="Editar rol">{{ icons.icon('edit', 'table-action-icon') }}<span>Editar</span></a>
+                            {% endif %}
+
+                            {% if auth_can('roles', 'delete') and role.slug != 'administrador' and role.is_active == 1 %}
+                                <form method="post" action="{{ site_url('admin/roles/' ~ role.id ~ '/delete') }}"
+                                      data-confirm="El rol ‘{{ role.name }}’ se marcará como inactivo."
+                                      data-confirm-title="Eliminar rol"
+                                      data-confirm-variant="danger"
+                                      data-confirm-button="Eliminar rol"
+                                      data-confirm-note="Usuarios asociados: {{ role.user_count }}. Revisa sus asignaciones si este rol está actualmente en uso.">
+                                    {{ csrf_field() }}
+                                    <button class="table-action table-action-danger" type="submit" title="Eliminar rol">{{ icons.icon('delete', 'table-action-icon') }}<span>Eliminar</span></button>
+                                </form>
+                            {% endif %}
+
+                            {% if not auth_can('roles', 'edit') and not auth_can('roles', 'delete') %}
+                                <span class="muted">Solo lectura</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

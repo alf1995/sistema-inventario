@@ -1,0 +1,103 @@
+{% extends 'layouts/admin.html.twig' %}
+{% import 'partials/admin/icons.html.twig' as icons %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Administración de usuarios</h1>
+        <p>Gestiona cuentas, estados, roles, contraseñas y sesiones activas.</p>
+    </div>
+
+    {% if auth_can('users', 'create') %}
+        <a class="btn" href="{{ site_url('admin/users/create') }}">Nuevo usuario</a>
+    {% endif %}
+</div>
+
+<section class="card">
+    {% include 'partials/admin/local_table_search.html.twig' with {
+        tableId: 'admin-users-table',
+        placeholder: 'Buscar usuario, email, rol o estado...'
+    } %}
+
+    <div class="table-wrap">
+        <table id="admin-users-table">
+            <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Email</th>
+                <th>Roles</th>
+                <th>Estado</th>
+                <th>Sesiones</th>
+                <th>Última actividad</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if users is empty %}
+                <tr><td colspan="7" class="muted">No hay usuarios registrados.</td></tr>
+            {% endif %}
+
+            {% for user in users %}
+                {% set isSelf = user.id == session_get('auth_user_id') %}
+                <tr>
+                    <td><strong>{{ user.username }}</strong></td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        <div class="badge-list">
+                            {% for role in user.roles %}
+                                <span class="badge">{{ role }}</span>
+                            {% else %}
+                                <span class="muted">Sin rol</span>
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge {{ user.status == 'active' ? 'badge-ok' : 'badge-off' }}">
+                            {{ user.status == 'active' ? 'Activo' : 'Inactivo' }}
+                        </span>
+                        {% if user.must_change_password|default(0) == 1 %}
+                            <div class="status-note"><span class="badge">Cambio de clave pendiente</span></div>
+                        {% endif %}
+                    </td>
+                    <td><span class="badge">{{ user.active_sessions|default(0) }} activa(s)</span></td>
+                    <td>{{ user.last_activity|default('Sin actividad') }}</td>
+                    <td>
+                        <div class="table-actions table-actions-many">
+                            {% if auth_can('users', 'edit') %}
+                                <a class="table-action" href="{{ site_url('admin/users/' ~ user.id ~ '/edit') }}" title="Editar usuario">{{ icons.icon('edit', 'table-action-icon') }}<span>Editar</span></a>
+
+                                {% if not isSelf %}
+                                    <a class="table-action" href="{{ site_url('admin/users/' ~ user.id ~ '/password') }}" title="Restablecer contraseña">{{ icons.icon('key', 'table-action-icon') }}<span>Restablecer clave</span></a>
+                                {% endif %}
+
+                                <form method="post" action="{{ site_url('admin/users/' ~ user.id ~ '/revoke-sessions') }}"
+                                          data-confirm="Se cerrarán las sesiones activas de ‘{{ user.username }}’. El usuario deberá iniciar sesión nuevamente en los dispositivos afectados."
+                                          data-confirm-title="Cerrar sesiones"
+                                          data-confirm-variant="warning"
+                                          data-confirm-button="Cerrar sesiones"
+                                          data-confirm-note="Sesiones activas registradas: {{ user.active_sessions|default(0) }}.">
+                                    {{ csrf_field() }}
+                                    <button class="table-action" type="submit" title="Cerrar sesiones activas">{{ icons.icon('sessions', 'table-action-icon') }}<span>Cerrar sesiones</span></button>
+                                </form>
+                            {% endif %}
+
+                            {% if auth_can('users', 'delete') and not isSelf and user.status == 'active' %}
+                                <form method="post" action="{{ site_url('admin/users/' ~ user.id ~ '/delete') }}"
+                                      data-confirm="El usuario ‘{{ user.username }}’ se marcará como inactivo y sus sesiones activas serán cerradas."
+                                      data-confirm-title="Eliminar usuario"
+                                      data-confirm-variant="danger"
+                                      data-confirm-button="Eliminar usuario"
+                                      data-confirm-note="La cuenta no se borrará físicamente y conservará su historial de actividad.">
+                                    {{ csrf_field() }}
+                                    <button class="table-action table-action-danger" type="submit" title="Eliminar usuario">{{ icons.icon('delete', 'table-action-icon') }}<span>Eliminar</span></button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

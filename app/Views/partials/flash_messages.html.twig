@@ -1,0 +1,27 @@
+{% set messages = [
+    {'key': 'success', 'className': 'alert-success', 'role': 'status'},
+    {'key': 'auth_success', 'className': 'alert-success', 'role': 'status'},
+    {'key': 'form_error', 'className': 'alert-error', 'role': 'alert'},
+    {'key': 'auth_error', 'className': 'alert-error', 'role': 'alert'},
+    {'key': 'auth_warning', 'className': 'alert-warning', 'role': 'alert'}
+] %}
+
+{% for message in messages %}
+    {% set value = flash(message.key) %}
+    {% if value %}
+        <div class="alert {{ message.className }}" role="{{ message.role }}">
+            {{ value }}
+        </div>
+    {% endif %}
+{% endfor %}
+
+{% set validationErrors = flash('validation_errors') %}
+{% if validationErrors is iterable and validationErrors is not empty %}
+    <div class="alert alert-error" role="alert">
+        <ul class="error-list">
+            {% for error in validationErrors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}

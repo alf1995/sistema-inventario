@@ -1,0 +1,102 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block content %}
+{% set isEdit = mode == 'edit' %}
+{% set old = flash('old_form') ?? {} %}
+{% set targetUserId = isEdit ? user.id : 0 %}
+{% set isSelf = isEdit and targetUserId == session_get('auth_user_id') %}
+{% set username = old.username ?? (user.username ?? '') %}
+{% set email = old.email ?? (user.email ?? '') %}
+{% set status = old.status ?? (user.status ?? 'active') %}
+{% set selectedRoles = old.role_ids ?? (user.role_ids ?? []) %}
+
+<div class="page-header">
+    <div>
+        <h1>{{ isEdit ? 'Editar usuario' : 'Nuevo usuario' }}</h1>
+        <p>{{ isEdit ? 'Actualiza los datos y autorizaciones de la cuenta.' : 'Crea una cuenta con contraseña inicial y roles explícitos.' }}</p>
+    </div>
+</div>
+
+<section class="card">
+    {% if isSelf %}
+        <div class="alert alert-info">Por seguridad, desde esta pantalla no puedes desactivar tu propia cuenta ni modificar tus propios roles.</div>
+    {% endif %}
+
+    <form method="post" action="{{ isEdit ? site_url('admin/users/' ~ targetUserId) : site_url('admin/users') }}" autocomplete="off">
+        {{ csrf_field() }}
+
+        <div class="form-grid form-grid-2">
+            <div class="field">
+                <label for="username">Usuario</label>
+                <input id="username" name="username" value="{{ username }}" required minlength="{{ authUsernameMinLength }}" maxlength="{{ authUsernameMaxLength }}" autocomplete="off">
+                <span class="help">Minúsculas, números, punto, guion y guion bajo.</span>
+            </div>
+
+            <div class="field">
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email" value="{{ email }}" required maxlength="{{ authEmailMaxLength }}" autocomplete="off">
+            </div>
+
+            {% if not isEdit %}
+                <div class="field">
+                    <label for="password">Contraseña inicial</label>
+                    <input id="password" name="password" type="password" required minlength="{{ authPasswordMinLength }}" maxlength="{{ authPasswordMaxLength }}" autocomplete="new-password">
+                    <span class="help">{{ authPasswordPolicyHelp }}</span>
+                </div>
+
+                <div class="field">
+                    <label for="password_confirm">Confirmar contraseña</label>
+                    <input id="password_confirm" name="password_confirm" type="password" required minlength="{{ authPasswordMinLength }}" maxlength="{{ authPasswordMaxLength }}" autocomplete="new-password">
+                </div>
+            {% endif %}
+
+            <div class="field">
+                <label for="status">Estado</label>
+                <select id="status" name="status" required {{ isSelf ? 'disabled' : '' }}>
+                    <option value="active" {{ status == 'active' ? 'selected' : '' }}>Activo</option>
+                    <option value="inactive" {{ status == 'inactive' ? 'selected' : '' }}>Inactivo</option>
+                </select>
+                {% if isSelf %}
+                    <input type="hidden" name="status" value="{{ status }}">
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="section-heading">
+            <div>
+                <h2>Roles</h2>
+                <p>Debes asignar al menos un rol activo. Los permisos efectivos del usuario se obtienen de todos sus roles activos.</p>
+            </div>
+        </div>
+
+        <div class="option-grid">
+            {% for role in roles %}
+                {% set checked = role.id in selectedRoles %}
+                <label class="choice-card" for="role_{{ role.id }}">
+                    <input
+                        id="role_{{ role.id }}"
+                        type="checkbox"
+                        name="role_ids[]"
+                        value="{{ role.id }}"
+                        {{ checked ? 'checked' : '' }}
+                        {{ isSelf ? 'disabled' : '' }}
+                    >
+                    <span>
+                        <strong>{{ role.name }}</strong>
+                        <small>{{ role.description ?? role.slug }}</small>
+                    </span>
+                </label>
+
+                {% if isSelf and checked %}
+                    <input type="hidden" name="role_ids[]" value="{{ role.id }}">
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="actions form-actions">
+            <button class="btn" type="submit">{{ isEdit ? 'Guardar cambios' : 'Crear usuario' }}</button>
+            <a class="btn btn-secondary" href="{{ site_url('admin/users') }}">Cancelar</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block content %}
+{% set isEdit = mode == 'edit' %}
+{% set old = flash('old_form') ?? {} %}
+{% set moduleId = isEdit ? module.id : 0 %}
+{% set isSystem = isEdit and module.is_system == 1 %}
+{% set isModuleAdmin = isEdit and module.slug == 'modules' %}
+{% set name = old.name ?? (module.name ?? '') %}
+{% set slug = old.slug ?? (module.slug ?? '') %}
+{% set description = old.description ?? (module.description ?? '') %}
+{% set status = old.status ?? ((module.is_active ?? 1) == 1 ? 'active' : 'inactive') %}
+{% set allowView = isModuleAdmin ? true : (old.allow_view is defined ? old.allow_view : (module.allow_view is defined ? module.allow_view : true)) %}
+{% set allowCreate = old.allow_create is defined ? old.allow_create : (module.allow_create is defined ? module.allow_create : false) %}
+{% set allowEdit = isModuleAdmin ? true : (old.allow_edit is defined ? old.allow_edit : (module.allow_edit is defined ? module.allow_edit : false)) %}
+{% set allowDelete = old.allow_delete is defined ? old.allow_delete : (module.allow_delete is defined ? module.allow_delete : false) %}
+{% set values = {'view': allowView, 'create': allowCreate, 'edit': allowEdit, 'delete': allowDelete} %}
+
+<div class="page-header">
+    <div>
+        <h1>{{ isEdit ? 'Editar módulo' : 'Nuevo módulo' }}</h1>
+        <p>Los permisos habilitados aquí son los únicos que podrán asignarse posteriormente a un rol.</p>
+    </div>
+</div>
+
+<section class="card">
+    {% if isSystem %}
+        <div class="alert alert-info">
+            Este es un módulo interno. Su identificador y estado están protegidos para evitar bloqueos del sistema.
+        </div>
+    {% endif %}
+
+    <form method="post" action="{{ isEdit ? site_url('admin/modules/' ~ moduleId) : site_url('admin/modules') }}">
+        {{ csrf_field() }}
+
+        <div class="form-grid form-grid-2">
+            <div class="field">
+                <label for="name">Nombre</label>
+                <input id="name" name="name" value="{{ name }}" required minlength="3" maxlength="100">
+            </div>
+
+            <div class="field">
+                <label for="slug">Identificador</label>
+                <input id="slug" name="slug" value="{{ slug }}" required minlength="3" maxlength="100" {{ isSystem ? 'readonly' : '' }}>
+                <span class="help">Ejemplo: reportes, paises, ciudades.</span>
+            </div>
+
+            <div class="field">
+                <label for="status">Estado</label>
+                <select id="status" name="status" required {{ isSystem ? 'disabled' : '' }}>
+                    <option value="active" {{ status == 'active' ? 'selected' : '' }}>Activo</option>
+                    <option value="inactive" {{ status == 'inactive' ? 'selected' : '' }}>Inactivo</option>
+                </select>
+                {% if isSystem %}
+                    <input type="hidden" name="status" value="active">
+                {% endif %}
+            </div>
+
+            <div class="field field-full">
+                <label for="description">Descripción</label>
+                <textarea id="description" name="description" maxlength="1000">{{ description }}</textarea>
+            </div>
+        </div>
+
+        <div class="section-heading">
+            <div>
+                <h2>Permisos disponibles</h2>
+                <p>Debes habilitar al menos uno. Un módulo puede tener, por ejemplo, únicamente el permiso Ver.</p>
+            </div>
+        </div>
+
+        <div class="permission-options">
+            {% for action, label in {'view':'Ver','create':'Agregar','edit':'Editar','delete':'Eliminar'} %}
+                {% set locked = isModuleAdmin and action in ['view', 'edit'] %}
+                <label class="permission-option" for="allow_{{ action }}">
+                    <input
+                        id="allow_{{ action }}"
+                        type="checkbox"
+                        name="allow_{{ action }}"
+                        value="1"
+                        {{ values[action] ? 'checked' : '' }}
+                        {{ locked ? 'disabled' : '' }}
+                    >
+                    <span>
+                        <strong>{{ label }}</strong>
+                        <small>{{ action == 'delete' ? 'Eliminación lógica del registro.' : 'Habilita esta acción para la matriz de roles.' }}</small>
+                    </span>
+                </label>
+                {% if locked %}
+                    <input type="hidden" name="allow_{{ action }}" value="1">
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="actions form-actions">
+            <button class="btn" type="submit">{{ isEdit ? 'Guardar cambios' : 'Crear módulo' }}</button>
+            <a class="btn btn-secondary" href="{{ site_url('admin/modules') }}">Cancelar</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

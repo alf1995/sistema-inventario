@@ -1,0 +1,243 @@
+{% extends 'layouts/admin.html.twig' %}
+{% import 'partials/admin/icons.html.twig' as icons %}
+
+{% block content %}
+<section class="dashboard-hero">
+    <div class="dashboard-hero-copy">
+        <span class="dashboard-eyebrow">{{ today }}</span>
+        <h1>{{ greeting }}, {{ username }}</h1>
+        <p>Revisa el estado del inventario y accede rápidamente a las operaciones que usas durante el día.</p>
+
+        <div class="dashboard-hero-actions">
+            {% if auth_can('movements', 'create') %}
+                <a class="btn dashboard-primary-action" href="{{ site_url('movements/create') }}">
+                    {{ icons.icon('movements', 'icon') }}
+                    Registrar movimiento
+                </a>
+            {% endif %}
+
+            {% if auth_can('inventory', 'view') %}
+                <a class="btn btn-secondary" href="{{ site_url('inventory') }}">
+                    {{ icons.icon('stock', 'icon') }}
+                    Consultar stock
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="dashboard-hero-badge" aria-hidden="true">
+        <span class="dashboard-hero-badge-icon">{{ icons.icon('box', 'icon icon-xl') }}</span>
+        <span>Inventario</span>
+        <strong>Control operativo</strong>
+    </div>
+</section>
+
+{% if inventoryDashboard.available %}
+    <section class="dashboard-kpis" aria-label="Resumen del inventario">
+        <article class="dashboard-kpi">
+            <span class="dashboard-kpi-icon dashboard-kpi-icon-primary">{{ icons.icon('products', 'icon icon-md') }}</span>
+            <div class="dashboard-kpi-copy">
+                <span>Productos activos</span>
+                <strong>{{ inventoryDashboard.active_products|number_format(0, '.', ',') }}</strong>
+                <small>Catálogo disponible</small>
+            </div>
+        </article>
+
+        <article class="dashboard-kpi">
+            <span class="dashboard-kpi-icon dashboard-kpi-icon-success">{{ icons.icon('stock', 'icon icon-md') }}</span>
+            <div class="dashboard-kpi-copy">
+                <span>Unidades en stock</span>
+                <strong>{{ inventoryDashboard.total_stock|number_format(0, '.', ',') }}</strong>
+                <small>Existencia acumulada</small>
+            </div>
+        </article>
+
+        <article class="dashboard-kpi">
+            <span class="dashboard-kpi-icon dashboard-kpi-icon-info">{{ icons.icon('activity', 'icon icon-md') }}</span>
+            <div class="dashboard-kpi-copy">
+                <span>Movimientos hoy</span>
+                <strong>{{ inventoryDashboard.movements_today|number_format(0, '.', ',') }}</strong>
+                <small>Operaciones registradas</small>
+            </div>
+        </article>
+
+        <article class="dashboard-kpi{{ inventoryDashboard.zero_stock > 0 ? ' dashboard-kpi-warning' : '' }}">
+            <span class="dashboard-kpi-icon dashboard-kpi-icon-warning">{{ icons.icon('alert', 'icon icon-md') }}</span>
+            <div class="dashboard-kpi-copy">
+                <span>Productos sin stock</span>
+                <strong>{{ inventoryDashboard.zero_stock|number_format(0, '.', ',') }}</strong>
+                <small>{{ inventoryDashboard.zero_stock > 0 ? 'Requieren revisión' : 'Sin alertas actualmente' }}</small>
+            </div>
+        </article>
+    </section>
+
+    <section class="dashboard-main-grid">
+        <article class="dashboard-panel dashboard-panel-wide">
+            <header class="dashboard-panel-header">
+                <div>
+                    <span class="dashboard-panel-eyebrow">Actividad</span>
+                    <h2>Movimientos recientes</h2>
+                </div>
+                {% if auth_can('movements', 'view') %}
+                    <a class="dashboard-text-link" href="{{ site_url('movements') }}">
+                        Ver todos {{ icons.icon('arrow-right', 'icon') }}
+                    </a>
+                {% endif %}
+            </header>
+
+            {% if inventoryDashboard.recent_movements is empty %}
+                <div class="dashboard-empty">
+                    <span>{{ icons.icon('activity', 'icon icon-lg') }}</span>
+                    <strong>Aún no hay movimientos</strong>
+                    <p>Los últimos ingresos y salidas aparecerán aquí.</p>
+                </div>
+            {% else %}
+                <div class="dashboard-activity-list">
+                    {% for movement in inventoryDashboard.recent_movements %}
+                        <div class="dashboard-activity-item">
+                            <span class="dashboard-activity-direction {{ movement.direction == 'IN' ? 'is-in' : 'is-out' }}">
+                                {{ icons.icon(movement.direction == 'IN' ? 'arrow-in' : 'arrow-out', 'icon') }}
+                            </span>
+                            <div class="dashboard-activity-main">
+                                <strong>{{ movement.product_name }}</strong>
+                                <span>{{ movement.movement_type_name }} · {{ movement.username }}</span>
+                            </div>
+                            <div class="dashboard-activity-quantity">
+                                <strong>{{ movement.direction == 'IN' ? '+' : '-' }}{{ movement.quantity|number_format(0, '.', ',') }}</strong>
+                                <span>Stock: {{ movement.stock_after|number_format(0, '.', ',') }}</span>
+                            </div>
+                            <time class="dashboard-activity-time" datetime="{{ movement.movement_at }}">
+                                {{ movement.movement_at|date('d/m H:i') }}
+                            </time>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </article>
+
+        <aside class="dashboard-side-stack">
+            <article class="dashboard-panel">
+                <header class="dashboard-panel-header dashboard-panel-header-compact">
+                    <div>
+                        <span class="dashboard-panel-eyebrow">Hoy</span>
+                        <h2>Flujo de unidades</h2>
+                    </div>
+                </header>
+
+                <div class="dashboard-flow-grid">
+                    <div class="dashboard-flow-card is-in">
+                        <span>{{ icons.icon('arrow-in', 'icon') }} Ingresos</span>
+                        <strong>+{{ inventoryDashboard.inbound_today|number_format(0, '.', ',') }}</strong>
+                    </div>
+                    <div class="dashboard-flow-card is-out">
+                        <span>{{ icons.icon('arrow-out', 'icon') }} Salidas</span>
+                        <strong>-{{ inventoryDashboard.outbound_today|number_format(0, '.', ',') }}</strong>
+                    </div>
+                </div>
+            </article>
+
+            <article class="dashboard-panel">
+                <header class="dashboard-panel-header dashboard-panel-header-compact">
+                    <div>
+                        <span class="dashboard-panel-eyebrow">Existencias</span>
+                        <h2>Mayor stock</h2>
+                    </div>
+                </header>
+
+                {% if inventoryDashboard.top_products is empty %}
+                    <p class="muted dashboard-panel-note">No hay productos activos para mostrar.</p>
+                {% else %}
+                    {% set maxStock = inventoryDashboard.top_products[0].current_stock > 0 ? inventoryDashboard.top_products[0].current_stock : 1 %}
+                    <div class="dashboard-stock-list">
+                        {% for product in inventoryDashboard.top_products %}
+                            <div class="dashboard-stock-item">
+                                <div class="dashboard-stock-meta">
+                                    <span>{{ product.name }}</span>
+                                    <strong>{{ product.current_stock|number_format(0, '.', ',') }}</strong>
+                                </div>
+                                <div class="dashboard-stock-track" aria-hidden="true">
+                                    <span style="width: {{ ((product.current_stock / maxStock) * 100)|round }}%"></span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </article>
+        </aside>
+    </section>
+{% endif %}
+
+<section class="dashboard-section">
+    <div class="dashboard-section-heading">
+        <div>
+            <span class="dashboard-panel-eyebrow">Atajos</span>
+            <h2>Accesos rápidos</h2>
+        </div>
+    </div>
+
+    <div class="dashboard-shortcuts">
+        {% if auth_can('products', 'view') %}
+            <a class="dashboard-shortcut" href="{{ site_url('products') }}">
+                <span class="dashboard-shortcut-icon">{{ icons.icon('products', 'icon icon-md') }}</span>
+                <span><strong>Productos</strong><small>Administrar catálogo</small></span>
+                {{ icons.icon('arrow-right', 'dashboard-shortcut-arrow') }}
+            </a>
+        {% endif %}
+
+        {% if auth_can('movements', 'view') %}
+            <a class="dashboard-shortcut" href="{{ site_url('movements') }}">
+                <span class="dashboard-shortcut-icon">{{ icons.icon('movements', 'icon icon-md') }}</span>
+                <span><strong>Movimientos</strong><small>Ingresos y salidas</small></span>
+                {{ icons.icon('arrow-right', 'dashboard-shortcut-arrow') }}
+            </a>
+        {% endif %}
+
+        {% if auth_can('inventory', 'view') %}
+            <a class="dashboard-shortcut" href="{{ site_url('inventory') }}">
+                <span class="dashboard-shortcut-icon">{{ icons.icon('stock', 'icon icon-md') }}</span>
+                <span><strong>Stock actual</strong><small>Consultar existencias</small></span>
+                {{ icons.icon('arrow-right', 'dashboard-shortcut-arrow') }}
+            </a>
+        {% endif %}
+
+        {% if auth_can('inventory_reports', 'view') %}
+            <a class="dashboard-shortcut" href="{{ site_url('reports') }}">
+                <span class="dashboard-shortcut-icon">{{ icons.icon('reports', 'icon icon-md') }}</span>
+                <span><strong>Reportes</strong><small>Revisar y exportar</small></span>
+                {{ icons.icon('arrow-right', 'dashboard-shortcut-arrow') }}
+            </a>
+        {% endif %}
+
+        {% if auth_can('users', 'view') %}
+            <a class="dashboard-shortcut" href="{{ site_url('admin/users') }}">
+                <span class="dashboard-shortcut-icon">{{ icons.icon('users', 'icon icon-md') }}</span>
+                <span><strong>Usuarios</strong><small>Administrar accesos</small></span>
+                {{ icons.icon('arrow-right', 'dashboard-shortcut-arrow') }}
+            </a>
+        {% endif %}
+
+        {% if auth_can('modules', 'view') %}
+            <a class="dashboard-shortcut" href="{{ site_url('admin/modules') }}">
+                <span class="dashboard-shortcut-icon">{{ icons.icon('modules', 'icon icon-md') }}</span>
+                <span><strong>Módulos</strong><small>Configurar permisos</small></span>
+                {{ icons.icon('arrow-right', 'dashboard-shortcut-arrow') }}
+            </a>
+        {% endif %}
+    </div>
+</section>
+
+<section class="dashboard-account-strip">
+    <div class="dashboard-account-identity">
+        <span class="dashboard-account-avatar">{{ username|slice(0, 1)|upper }}</span>
+        <div>
+            <strong>{{ username }}</strong>
+            <span>{{ email }}</span>
+        </div>
+    </div>
+    <div class="dashboard-account-meta">
+        <span>Rol</span>
+        <strong>{{ roles is empty ? 'Sin rol asignado' : roles|join(', ') }}</strong>
+    </div>
+    <a class="dashboard-text-link" href="{{ site_url(authPaths.password) }}">Seguridad de cuenta {{ icons.icon('arrow-right', 'icon') }}</a>
+</section>
+{% endblock %}

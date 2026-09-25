@@ -1,0 +1,143 @@
+{% import 'partials/admin/icons.html.twig' as icons %}
+
+<aside id="app-sidebar" class="sidebar" data-sidebar aria-label="Navegación principal">
+    <div class="sidebar-inner">
+        <div class="sidebar-header">
+            <a class="sidebar-brand-link" href="{{ site_url(authPaths.dashboard) }}">
+                <span class="sidebar-brand-mark" aria-hidden="true">SI</span>
+                <span class="sidebar-brand-copy">
+                    <strong>SISTEMA DE INVENTARIO</strong>
+                </span>
+            </a>
+
+            <button class="sidebar-close" type="button" data-sidebar-close aria-label="Cerrar menú">
+                {{ icons.icon('close', 'icon icon-md') }}
+            </button>
+        </div>
+
+        {% if not mustChangePassword %}
+            <div class="sidebar-search-wrap">
+                <label class="sr-only" for="sidebar-search">Buscar módulo</label>
+                <span class="sidebar-search-icon">{{ icons.icon('search', 'icon') }}</span>
+                <input id="sidebar-search" class="sidebar-search" type="search" placeholder="Buscar módulo..." autocomplete="off" data-sidebar-search>
+                <kbd class="sidebar-search-shortcut">/</kbd>
+            </div>
+        {% endif %}
+
+        <div class="sidebar-scroll">
+            <nav class="sidebar-nav" aria-label="Módulos del sistema">
+                {% if not mustChangePassword %}
+                    <section class="sidebar-nav-group" data-sidebar-group>
+                        <button class="sidebar-group-title" type="button" data-sidebar-group-toggle aria-expanded="true">
+                            <span>General</span>
+                            {{ icons.icon('chevron', 'sidebar-group-chevron') }}
+                        </button>
+                        <div class="sidebar-group-links" data-sidebar-group-links>
+                            <a class="sidebar-link{{ is_active(authPaths.dashboard, true) }}" href="{{ site_url(authPaths.dashboard) }}" data-sidebar-link>
+                                <span class="sidebar-link-icon">{{ icons.icon('dashboard', 'icon') }}</span>
+                                <span class="sidebar-link-label">Dashboard</span>
+                            </a>
+                        </div>
+                    </section>
+
+                    {% if auth_can('products', 'view') or auth_can('movements', 'view') or auth_can('inventory', 'view') or auth_can('inventory_reports', 'view') %}
+                        <section class="sidebar-nav-group" data-sidebar-group>
+                            <button class="sidebar-group-title" type="button" data-sidebar-group-toggle aria-expanded="true">
+                                <span>Inventario</span>
+                                {{ icons.icon('chevron', 'sidebar-group-chevron') }}
+                            </button>
+                            <div class="sidebar-group-links" data-sidebar-group-links>
+                                {% if auth_can('products', 'view') %}
+                                    <a class="sidebar-link{{ is_active('products') }}" href="{{ site_url('products') }}" data-sidebar-link>
+                                        <span class="sidebar-link-icon">{{ icons.icon('products', 'icon') }}</span>
+                                        <span class="sidebar-link-label">Productos</span>
+                                    </a>
+                                {% endif %}
+
+                                {% if auth_can('movements', 'view') %}
+                                    <a class="sidebar-link{{ is_active('movements') }}" href="{{ site_url('movements') }}" data-sidebar-link>
+                                        <span class="sidebar-link-icon">{{ icons.icon('movements', 'icon') }}</span>
+                                        <span class="sidebar-link-label">Movimientos</span>
+                                    </a>
+                                {% endif %}
+
+                                {% if auth_can('inventory', 'view') %}
+                                    <a class="sidebar-link{{ is_active('inventory') }}" href="{{ site_url('inventory') }}" data-sidebar-link>
+                                        <span class="sidebar-link-icon">{{ icons.icon('stock', 'icon') }}</span>
+                                        <span class="sidebar-link-label">Inventario</span>
+                                    </a>
+                                {% endif %}
+
+                                {% if auth_can('inventory_reports', 'view') %}
+                                    <a class="sidebar-link{{ is_active('reports') }}" href="{{ site_url('reports') }}" data-sidebar-link>
+                                        <span class="sidebar-link-icon">{{ icons.icon('reports', 'icon') }}</span>
+                                        <span class="sidebar-link-label">Reportes</span>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </section>
+                    {% endif %}
+
+                    {% if auth_can('inventory_settings', 'view') %}
+                        <section class="sidebar-nav-group" data-sidebar-group>
+                            <button class="sidebar-group-title" type="button" data-sidebar-group-toggle aria-expanded="true">
+                                <span>Configuración</span>
+                                {{ icons.icon('chevron', 'sidebar-group-chevron') }}
+                            </button>
+                            <div class="sidebar-group-links" data-sidebar-group-links>
+                                <a class="sidebar-link{{ is_active('settings/product-types') }}" href="{{ site_url('settings/product-types') }}" data-sidebar-link>
+                                    <span class="sidebar-link-icon">{{ icons.icon('settings', 'icon') }}</span>
+                                    <span class="sidebar-link-label">Tipos de producto</span>
+                                </a>
+                                <a class="sidebar-link{{ is_active('settings/movement-types') }}" href="{{ site_url('settings/movement-types') }}" data-sidebar-link>
+                                    <span class="sidebar-link-icon">{{ icons.icon('settings', 'icon') }}</span>
+                                    <span class="sidebar-link-label">Tipos de movimiento</span>
+                                </a>
+                            </div>
+                        </section>
+                    {% endif %}
+
+                    {% if auth_can('users', 'view') or auth_can('roles', 'view') or auth_can('modules', 'view') %}
+                        <section class="sidebar-nav-group" data-sidebar-group>
+                            <button class="sidebar-group-title" type="button" data-sidebar-group-toggle aria-expanded="true">
+                                <span>Administración</span>
+                                {{ icons.icon('chevron', 'sidebar-group-chevron') }}
+                            </button>
+                            <div class="sidebar-group-links" data-sidebar-group-links>
+                                {% if auth_can('users', 'view') %}
+                                    <a class="sidebar-link{{ is_active('admin/users') }}" href="{{ site_url('admin/users') }}" data-sidebar-link>
+                                        <span class="sidebar-link-icon">{{ icons.icon('users', 'icon') }}</span>
+                                        <span class="sidebar-link-label">Usuarios</span>
+                                    </a>
+                                {% endif %}
+
+                                {% if auth_can('roles', 'view') %}
+                                    <a class="sidebar-link{{ is_active('admin/roles') }}" href="{{ site_url('admin/roles') }}" data-sidebar-link>
+                                        <span class="sidebar-link-icon">{{ icons.icon('roles', 'icon') }}</span>
+                                        <span class="sidebar-link-label">Roles</span>
+                                    </a>
+                                {% endif %}
+
+                                {% if auth_can('modules', 'view') %}
+                                    <a class="sidebar-link{{ is_active('admin/modules') }}" href="{{ site_url('admin/modules') }}" data-sidebar-link>
+                                        <span class="sidebar-link-icon">{{ icons.icon('modules', 'icon') }}</span>
+                                        <span class="sidebar-link-label">Módulos</span>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </section>
+                    {% endif %}
+
+                    <p class="sidebar-search-empty" data-sidebar-search-empty hidden>No se encontró ningún módulo.</p>
+                {% endif %}
+            </nav>
+        </div>
+
+        <div class="sidebar-footer">
+            <a class="sidebar-link{{ is_active(authPaths.password) }}" href="{{ site_url(authPaths.password) }}">
+                <span class="sidebar-link-icon">{{ icons.icon('password', 'icon') }}</span>
+                <span class="sidebar-link-label">Mi contraseña</span>
+            </a>
+        </div>
+    </div>
+</aside>

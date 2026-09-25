@@ -1,0 +1,76 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block content %}
+{% set isEdit = mode == 'edit' %}
+{% set old = flash('old_form') ?? {} %}
+{% set id = isEdit ? product.id : 0 %}
+{% set name = old.name ?? (product.name ?? '') %}
+{% set productTypeId = old.product_type_id ?? (product.product_type_id ?? 0) %}
+{% set unitsPerPackage = old.units_per_package ?? (product.units_per_package ?? 1) %}
+{% set price = old.price ?? (product.price ?? '0.00') %}
+{% set status = old.status ?? (product.status ?? 'active') %}
+
+<div class="page-header">
+    <div>
+        <h1>{{ isEdit ? 'Editar producto' : 'Nuevo producto' }}</h1>
+        <p>La existencia se administra únicamente desde los movimientos de inventario.</p>
+    </div>
+</div>
+
+<section class="card card-narrow">
+    <form method="post" action="{{ isEdit ? site_url('products/' ~ id) : site_url('products') }}">
+        {{ csrf_field() }}
+
+        <div class="form-grid form-grid-2">
+            <div class="field field-full">
+                <label for="name">Nombre</label>
+                <input id="name" name="name" value="{{ name }}" maxlength="150" required>
+            </div>
+
+            <div class="field">
+                <label for="product_type_id">Tipo de producto</label>
+                <select id="product_type_id" name="product_type_id" required>
+                    <option value="">Selecciona una opción</option>
+                    {% for type in productTypes %}
+                        <option value="{{ type.id }}" {{ productTypeId == type.id ? 'selected' : '' }}>
+                            {{ type.name }}{{ type.status != 'active' ? ' (Inactivo)' : '' }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="units_per_package">Unidades por empaque / presentación</label>
+                <input id="units_per_package" type="number" name="units_per_package" value="{{ unitsPerPackage }}" min="1" step="1" required>
+                <span class="help">Ejemplo: 1 caja = 100 unidades.</span>
+            </div>
+
+            <div class="field">
+                <label for="price">Precio</label>
+                <input id="price" type="number" name="price" value="{{ price }}" min="0" step="0.01" required>
+            </div>
+
+            <div class="field">
+                <label for="status">Estado</label>
+                <select id="status" name="status" required>
+                    <option value="active" {{ status == 'active' ? 'selected' : '' }}>Activo</option>
+                    <option value="inactive" {{ status == 'inactive' ? 'selected' : '' }}>Inactivo</option>
+                </select>
+            </div>
+
+            {% if isEdit %}
+                <div class="field">
+                    <label for="current_stock">Stock actual</label>
+                    <input id="current_stock" value="{{ product.current_stock }}" readonly>
+                    <span class="help">Este valor no se edita aquí; cambia mediante ingresos y salidas.</span>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="actions form-actions">
+            <button class="btn" type="submit">{{ isEdit ? 'Guardar cambios' : 'Crear producto' }}</button>
+            <a class="btn btn-secondary" href="{{ site_url('products') }}">Cancelar</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

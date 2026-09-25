@@ -1,0 +1,76 @@
+{% extends 'layouts/admin.html.twig' %}
+{% import 'partials/admin/icons.html.twig' as icons %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Tipos de movimiento</h1>
+        <p>Configura los motivos de ingreso y salida disponibles en el kardex.</p>
+    </div>
+
+    {% if auth_can('inventory_settings', 'create') %}
+        <a class="btn" href="{{ site_url('settings/movement-types/create') }}">Nuevo tipo</a>
+    {% endif %}
+</div>
+
+<section class="card">
+    {% include 'partials/admin/table_search.html.twig' with {
+        action: site_url('settings/movement-types'),
+        clearUrl: site_url('settings/movement-types'),
+        search: search,
+        placeholder: 'Buscar nombre, operación, descripción o estado...'
+    } %}
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Operación permitida</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if items is empty %}
+                <tr><td colspan="5" class="empty-state">No hay tipos de movimiento que coincidan con la búsqueda.</td></tr>
+            {% endif %}
+
+            {% for item in items %}
+                {% set directionLabel = item.allowed_direction == 'IN' ? 'Ingreso' : (item.allowed_direction == 'OUT' ? 'Salida' : 'Ingreso / Salida') %}
+                <tr>
+                    <td><strong>{{ item.name }}</strong></td>
+                    <td><span class="badge">{{ directionLabel }}</span></td>
+                    <td>{{ item.description|default('') }}</td>
+                    <td>
+                        <span class="badge {{ item.status == 'active' ? 'badge-ok' : 'badge-off' }}">
+                            {{ item.status == 'active' ? 'Activo' : 'Inactivo' }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            {% if auth_can('inventory_settings', 'edit') %}
+                                <a class="table-action" href="{{ site_url('settings/movement-types/' ~ item.id ~ '/edit') }}" title="Editar tipo de movimiento">{{ icons.icon('edit', 'table-action-icon') }}<span>Editar</span></a>
+                            {% endif %}
+
+                            {% if auth_can('inventory_settings', 'delete') %}
+                                <form method="post" action="{{ site_url('settings/movement-types/' ~ item.id ~ '/delete') }}"
+                                      data-confirm="El tipo de movimiento ‘{{ item.name }}’ se marcará como inactivo y dejará de estar disponible para nuevos movimientos."
+                                      data-confirm-title="Eliminar tipo de movimiento"
+                                      data-confirm-variant="danger"
+                                      data-confirm-button="Eliminar"
+                                      data-confirm-note="Los movimientos históricos asociados no serán eliminados.">
+                                    {{ csrf_field() }}
+                                    <button class="table-action table-action-danger" type="submit" title="Eliminar tipo de movimiento">{{ icons.icon('delete', 'table-action-icon') }}<span>Eliminar</span></button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

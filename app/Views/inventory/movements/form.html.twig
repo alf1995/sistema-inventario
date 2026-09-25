@@ -1,0 +1,109 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block content %}
+{% set old = oldForm|default({}) %}
+{% set productId = old.product_id ?? (selectedProduct.id ?? 0) %}
+{% set movementTypeId = old.movement_type_id ?? 0 %}
+{% set movementAt = old.movement_at ?? defaultMovementAt %}
+{% set direction = old.direction ?? 'IN' %}
+{% set quantity = old.quantity ?? 1 %}
+{% set note = old.note ?? '' %}
+{% set productSearchValue = selectedProduct != null ? selectedProduct.name : '' %}
+
+<div class="page-header">
+    <div>
+        <h1>Registrar movimiento</h1>
+        <p>Busca el producto por nombre y confirma el ingreso o salida en una sola transacción.</p>
+    </div>
+</div>
+
+<section class="card card-narrow">
+    <form method="post" action="{{ site_url('movements') }}" data-movement-form>
+        {{ csrf_field() }}
+
+        <div class="form-grid form-grid-2">
+            <div class="field field-full">
+                <label for="product_search">Producto</label>
+                <div
+                    class="product-search"
+                    data-product-search
+                    data-search-url="{{ site_url('movements/products/search') }}"
+                    data-min-chars="{{ productSearchMinChars }}"
+                    data-debounce-ms="{{ productSearchDebounceMs }}"
+                    data-cache-ttl-ms="{{ productSearchCacheTtlMs }}"
+                >
+                    <input
+                        id="product_search"
+                        class="product-search-input"
+                        type="search"
+                        value="{{ productSearchValue }}"
+                        placeholder="Escribe el nombre del producto..."
+                        maxlength="{{ productSearchMaxLength }}"
+                        autocomplete="off"
+                        role="combobox"
+                        aria-autocomplete="list"
+                        aria-expanded="false"
+                        aria-controls="product_search_results"
+                        data-product-search-input
+                        required
+                    >
+                    <input type="hidden" name="product_id" value="{{ productId > 0 ? productId : '' }}" data-product-id>
+                    <div id="product_search_results" class="product-search-results" role="listbox" data-product-search-results hidden></div>
+                </div>
+                <span class="help">Escribe al menos {{ productSearchMinChars }} caracteres. Se muestran hasta {{ productSearchLimit }} coincidencias por consulta.</span>
+                <span class="product-search-selection" data-product-search-selection>
+                    {% if selectedProduct != null %}
+                        Seleccionado: <strong>{{ selectedProduct.name }}</strong> · Stock: {{ selectedProduct.current_stock|number_format }}
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="field">
+                <label for="direction">Operación</label>
+                <select id="direction" name="direction" data-movement-direction required>
+                    <option value="IN" {{ direction == 'IN' ? 'selected' : '' }}>Ingreso</option>
+                    <option value="OUT" {{ direction == 'OUT' ? 'selected' : '' }}>Salida</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="movement_type_id">Tipo de movimiento</label>
+                <select id="movement_type_id" name="movement_type_id" data-movement-type required>
+                    <option value="">Selecciona un tipo</option>
+                    {% for type in movementTypes %}
+                        <option
+                            value="{{ type.id }}"
+                            data-allowed-direction="{{ type.allowed_direction }}"
+                            {{ movementTypeId == type.id ? 'selected' : '' }}
+                        >{{ type.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="movement_at">Fecha y hora</label>
+                <input id="movement_at" type="datetime-local" name="movement_at" value="{{ movementAt }}" required>
+            </div>
+
+            <div class="field">
+                <label for="quantity">Cantidad (unidades)</label>
+                <input id="quantity" type="number" name="quantity" value="{{ quantity }}" min="1" step="1" required>
+            </div>
+
+            <div class="field field-full">
+                <label for="note">Nota / observación</label>
+                <textarea id="note" name="note" maxlength="2000">{{ note }}</textarea>
+            </div>
+        </div>
+
+        <div class="alert alert-info inventory-rule-note">
+            Las salidas no permiten dejar stock negativo. Si otro usuario mueve el mismo producto al mismo tiempo, el sistema bloqueará la fila durante la confirmación para mantener el saldo consistente.
+        </div>
+
+        <div class="actions form-actions">
+            <button class="btn" type="submit">Confirmar movimiento</button>
+            <a class="btn btn-secondary" href="{{ site_url('movements') }}">Cancelar</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

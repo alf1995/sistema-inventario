@@ -1,0 +1,33 @@
+{% import 'partials/admin/icons.html.twig' as icons %}
+{% set currentUser = session_get('auth_username') %}
+
+<header class="topbar">
+    <div class="topbar-left">
+        <button class="topbar-menu-button" type="button" data-sidebar-open aria-controls="app-sidebar" aria-expanded="false" aria-label="Abrir menú principal">
+            {{ icons.icon('menu', 'icon icon-md') }}
+        </button>
+
+        <div class="topbar-context">
+            <span>Panel de control</span>
+            <strong>{{ title|default('Sistema de Inventario') }}</strong>
+        </div>
+    </div>
+
+    <div class="topbar-actions">
+        <div class="topbar-profile">
+            <span class="topbar-avatar" aria-hidden="true">{{ currentUser|default('U')|slice(0, 1)|upper }}</span>
+            <div class="topbar-profile-copy">
+                <div class="topbar-user">{{ currentUser }}</div>
+                <div class="topbar-email">{{ session_get('auth_email') }}</div>
+            </div>
+        </div>
+
+        <form method="post" action="{{ site_url(authPaths.logout) }}">
+            {{ csrf_field() }}
+            <button class="topbar-logout" type="submit" title="Cerrar sesión">
+                {{ icons.icon('logout', 'icon') }}
+                <span>Cerrar sesión</span>
+            </button>
+        </form>
+    </div>
+</header>

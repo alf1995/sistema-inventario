@@ -1,0 +1,73 @@
+{% extends 'layouts/admin.html.twig' %}
+{% import 'partials/admin/icons.html.twig' as icons %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Tipos de producto</h1>
+        <p>Administra las presentaciones disponibles para los productos del inventario.</p>
+    </div>
+
+    {% if auth_can('inventory_settings', 'create') %}
+        <a class="btn" href="{{ site_url('settings/product-types/create') }}">Nuevo tipo</a>
+    {% endif %}
+</div>
+
+<section class="card">
+    {% include 'partials/admin/table_search.html.twig' with {
+        action: site_url('settings/product-types'),
+        clearUrl: site_url('settings/product-types'),
+        search: search,
+        placeholder: 'Buscar nombre, descripción o estado...'
+    } %}
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if items is empty %}
+                <tr><td colspan="4" class="empty-state">No hay tipos de producto que coincidan con la búsqueda.</td></tr>
+            {% endif %}
+
+            {% for item in items %}
+                <tr>
+                    <td><strong>{{ item.name }}</strong></td>
+                    <td>{{ item.description|default('') }}</td>
+                    <td>
+                        <span class="badge {{ item.status == 'active' ? 'badge-ok' : 'badge-off' }}">
+                            {{ item.status == 'active' ? 'Activo' : 'Inactivo' }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            {% if auth_can('inventory_settings', 'edit') %}
+                                <a class="table-action" href="{{ site_url('settings/product-types/' ~ item.id ~ '/edit') }}" title="Editar tipo de producto">{{ icons.icon('edit', 'table-action-icon') }}<span>Editar</span></a>
+                            {% endif %}
+
+                            {% if auth_can('inventory_settings', 'delete') %}
+                                <form method="post" action="{{ site_url('settings/product-types/' ~ item.id ~ '/delete') }}"
+                                      data-confirm="El tipo de producto ‘{{ item.name }}’ se marcará como inactivo."
+                                      data-confirm-title="Eliminar tipo de producto"
+                                      data-confirm-variant="danger"
+                                      data-confirm-button="Eliminar"
+                                      data-confirm-note="El registro no se borrará físicamente de la base de datos.">
+                                    {{ csrf_field() }}
+                                    <button class="table-action table-action-danger" type="submit" title="Eliminar tipo de producto">{{ icons.icon('delete', 'table-action-icon') }}<span>Eliminar</span></button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

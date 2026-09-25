@@ -1,0 +1,90 @@
+{% extends 'layouts/admin.html.twig' %}
+{% import 'partials/admin/icons.html.twig' as icons %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Administración de módulos</h1>
+        <p>Crea módulos y define cuáles de los cuatro permisos estarán disponibles para los roles.</p>
+    </div>
+
+    {% if auth_can('modules', 'create') %}
+        <a class="btn" href="{{ site_url('admin/modules/create') }}">Nuevo módulo</a>
+    {% endif %}
+</div>
+
+<section class="card">
+    {% include 'partials/admin/local_table_search.html.twig' with {
+        tableId: 'admin-modules-table',
+        placeholder: 'Buscar módulo, identificador o permiso...'
+    } %}
+
+    <div class="table-wrap">
+        <table id="admin-modules-table">
+            <thead>
+            <tr>
+                <th>Módulo</th>
+                <th>Identificador</th>
+                <th>Permisos disponibles</th>
+                <th>Estado</th>
+                <th>Tipo</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for module in modules %}
+                <tr>
+                    <td>
+                        <strong>{{ module.name }}</strong>
+                        {% if module.description|default('') != '' %}
+                            <div class="help">{{ module.description }}</div>
+                        {% endif %}
+                    </td>
+                    <td><code>{{ module.slug }}</code></td>
+                    <td>
+                        <div class="permission-badges">
+                            {% for action, label in {'view':'Ver','create':'Agregar','edit':'Editar','delete':'Eliminar'} %}
+                                {% if module['allow_' ~ action] == 1 %}
+                                    <span class="badge badge-ok">{{ label }}</span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge {{ module.is_active == 1 ? 'badge-ok' : 'badge-off' }}">
+                            {{ module.is_active == 1 ? 'Activo' : 'Inactivo' }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if module.is_system == 1 %}
+                            <span class="badge">Sistema</span>
+                        {% else %}
+                            Personalizado
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            {% if auth_can('modules', 'edit') %}
+                                <a class="table-action" href="{{ site_url('admin/modules/' ~ module.id ~ '/edit') }}" title="Editar módulo">{{ icons.icon('edit', 'table-action-icon') }}<span>Editar</span></a>
+                            {% endif %}
+
+                            {% if auth_can('modules', 'delete') and module.is_system != 1 and module.is_active == 1 %}
+                                <form method="post" action="{{ site_url('admin/modules/' ~ module.id ~ '/delete') }}"
+                                      data-confirm="El módulo ‘{{ module.name }}’ se marcará como inactivo y dejará de estar disponible para su asignación."
+                                      data-confirm-title="Eliminar módulo"
+                                      data-confirm-variant="danger"
+                                      data-confirm-button="Eliminar módulo"
+                                      data-confirm-note="Los datos históricos y relaciones existentes se conservarán.">
+                                    {{ csrf_field() }}
+                                    <button class="table-action table-action-danger" type="submit" title="Eliminar módulo">{{ icons.icon('delete', 'table-action-icon') }}<span>Eliminar</span></button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

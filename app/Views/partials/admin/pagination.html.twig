@@ -1,0 +1,17 @@
+{% if paginationMeta is defined and paginationMeta.total > 0 %}
+    <div class="pagination-footer">
+        <p class="pagination-summary" aria-live="polite">
+            Mostrando del
+            <strong>{{ paginationMeta.from|number_format(0, ',', '.') }}</strong>
+            al
+            <strong>{{ paginationMeta.to|number_format(0, ',', '.') }}</strong>
+            de
+            <strong>{{ paginationMeta.total|number_format(0, ',', '.') }}</strong>
+            {{ paginationMeta.total == 1 ? 'registro' : 'registros' }}
+        </p>
+
+        {% if pagination %}
+            <div class="pager-wrap">{{ pagination|raw }}</div>
+        {% endif %}
+    </div>
+{% endif %}

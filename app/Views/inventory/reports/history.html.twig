@@ -1,0 +1,59 @@
+{% extends 'layouts/admin.html.twig' %}
+{% import 'partials/admin/icons.html.twig' as icons %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Histórico de reportes</h1>
+        <p>Registro de exportaciones generadas, usuario solicitante y parámetros aplicados.</p>
+    </div>
+    <a class="btn btn-secondary" href="{{ site_url('reports') }}">Volver a reportes</a>
+</div>
+
+<section class="card">
+    {% include 'partials/admin/table_search.html.twig' with {
+        action: site_url('reports/history'),
+        clearUrl: site_url('reports/history'),
+        search: search,
+        placeholder: 'Buscar usuario, archivo o parámetros...'
+    } %}
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>Generado</th>
+                <th>Usuario</th>
+                <th>Desde</th>
+                <th>Hasta</th>
+                <th>Movimiento</th>
+                <th>Registros</th>
+                <th>Archivo</th>
+                <th>Acción</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if reports is empty %}
+                <tr><td colspan="8" class="empty-state">No hay reportes que coincidan con la búsqueda.</td></tr>
+            {% endif %}
+
+            {% for report in reports %}
+                {% set directionLabel = report.direction|default('') == 'IN' ? 'Ingresos' : (report.direction|default('') == 'OUT' ? 'Salidas' : 'Todos') %}
+                <tr>
+                    <td>{{ report.generated_at }}</td>
+                    <td>{{ report.username }}</td>
+                    <td>{{ report.date_from ?? 'Todos' }}</td>
+                    <td>{{ report.date_to ?? 'Todos' }}</td>
+                    <td>{{ directionLabel }}</td>
+                    <td>{{ report.row_count|number_format }}</td>
+                    <td><code>{{ report.file_name }}</code></td>
+                    <td><div class="table-actions"><a class="table-action" href="{{ site_url('reports/' ~ report.id ~ '/download') }}" title="Descargar reporte">{{ icons.icon('download', 'table-action-icon') }}<span>Descargar</span></a></div></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% include 'partials/admin/pagination.html.twig' %}
+</section>
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Reportes de inventario</h1>
+        <p>Filtra movimientos y genera archivos Excel con trazabilidad del usuario solicitante.</p>
+    </div>
+    <a class="btn btn-secondary" href="{{ site_url('reports/history') }}">Histórico de reportes</a>
+</div>
+
+{% if filterError != null %}
+    <div class="alert alert-error" role="alert">{{ filterError }}</div>
+{% endif %}
+
+<section class="card">
+    <form method="get" action="{{ site_url('reports') }}" class="report-filter-form">
+        <div class="form-grid report-filter-grid">
+            <div class="field">
+                <label for="date_from">Fecha desde</label>
+                <input id="date_from" type="date" name="date_from" value="{{ filters.date_from }}">
+            </div>
+
+            <div class="field">
+                <label for="date_to">Fecha hasta</label>
+                <input id="date_to" type="date" name="date_to" value="{{ filters.date_to }}">
+            </div>
+
+            <div class="field">
+                <label for="direction">Tipo de movimiento</label>
+                <select id="direction" name="direction">
+                    <option value="" {{ filters.direction == '' ? 'selected' : '' }}>Todos</option>
+                    <option value="IN" {{ filters.direction == 'IN' ? 'selected' : '' }}>Solo ingresos</option>
+                    <option value="OUT" {{ filters.direction == 'OUT' ? 'selected' : '' }}>Solo salidas</option>
+                </select>
+            </div>
+
+            <div class="field report-search-field">
+                <label for="search">Buscar en resultados</label>
+                <input id="search" type="search" name="search" value="{{ filters.search }}" placeholder="Producto, tipo, usuario..." maxlength="{{ reportSearchMaxLength }}">
+            </div>
+
+            <div class="actions report-filter-actions field-full">
+                <button class="btn" type="submit">Buscar</button>
+                <a class="btn btn-secondary" href="{{ site_url('reports') }}">Limpiar</a>
+            </div>
+        </div>
+    </form>
+
+    {% if auth_can('inventory_reports', 'create') %}
+        <form method="post" action="{{ site_url('reports/export') }}" class="export-form">
+            {{ csrf_field() }}
+            <input type="hidden" name="date_from" value="{{ filters.date_from }}">
+            <input type="hidden" name="date_to" value="{{ filters.date_to }}">
+            <input type="hidden" name="direction" value="{{ filters.direction }}">
+            <input type="hidden" name="search" value="{{ filters.search }}">
+            <button class="btn btn-secondary" type="submit">Exportar a Excel</button>
+            <span class="help">La exportación respeta exactamente los filtros y el texto de búsqueda actuales.</span>
+        </form>
+    {% endif %}
+</section>
+
+<section class="card card-spaced">
+    <div class="section-heading section-heading-inline">
+        <div>
+            <h2>Vista previa</h2>
+            <p>Se muestran como máximo {{ reportPreviewLimit }} registros en pantalla. La exportación usa todos los resultados del filtro.</p>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>Fecha y hora</th>
+                <th>Producto</th>
+                <th>Tipo producto</th>
+                <th>Operación</th>
+                <th>Tipo movimiento</th>
+                <th>Cantidad</th>
+                <th>Stock anterior</th>
+                <th>Stock resultante</th>
+                <th>Usuario</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if rows is empty %}
+                <tr><td colspan="9" class="empty-state">No hay movimientos que coincidan con los filtros.</td></tr>
+            {% endif %}
+
+            {% for row in rows %}
+                <tr>
+                    <td>{{ row.movement_at }}</td>
+                    <td><strong>{{ row.product_name }}</strong></td>
+                    <td>{{ row.product_type_name }}</td>
+                    <td>{{ row.direction == 'IN' ? 'Ingreso' : 'Salida' }}</td>
+                    <td>{{ row.movement_type_name }}</td>
+                    <td>{{ row.quantity|number_format }}</td>
+                    <td>{{ row.stock_before|number_format }}</td>
+                    <td>{{ row.stock_after|number_format }}</td>
+                    <td>{{ row.username }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

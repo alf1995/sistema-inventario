@@ -1,0 +1,26 @@
+{% set inputName = inputName|default('q') %}
+{% set searchValue = search|default('') %}
+{% set placeholderText = placeholder|default('Buscar...') %}
+{% set searchAction = action|default(current_url()) %}
+{% set clearHref = clearUrl|default(searchAction) %}
+
+<div class="table-toolbar">
+    <form class="table-search-form" method="get" action="{{ searchAction }}" role="search">
+        <div class="table-search-input-wrap">
+            <span class="table-search-icon" aria-hidden="true"></span>
+            <input
+                class="table-search-input"
+                type="search"
+                name="{{ inputName }}"
+                value="{{ searchValue }}"
+                placeholder="{{ placeholderText }}"
+                autocomplete="off"
+                aria-label="{{ placeholderText }}"
+            >
+        </div>
+        <button class="btn btn-secondary" type="submit">Buscar</button>
+        {% if searchValue != '' %}
+            <a class="btn btn-ghost" href="{{ clearHref }}">Limpiar</a>
+        {% endif %}
+    </form>
+</div>

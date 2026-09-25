@@ -1,0 +1,65 @@
+{% extends 'layouts/admin.html.twig' %}
+{% import 'partials/admin/icons.html.twig' as icons %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Inventario actual</h1>
+        <p>Resumen del stock acumulado por producto.</p>
+    </div>
+
+    {% if auth_can('movements', 'create') %}
+        <a class="btn" href="{{ site_url('movements/create') }}">Registrar movimiento</a>
+    {% endif %}
+</div>
+
+<section class="card">
+    {% include 'partials/admin/table_search.html.twig' with {
+        action: site_url('inventory'),
+        clearUrl: site_url('inventory'),
+        search: search,
+        placeholder: 'Buscar producto, tipo o estado...'
+    } %}
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Tipo</th>
+                <th>Presentación</th>
+                <th>Precio</th>
+                <th>Stock actual</th>
+                <th>Estado</th>
+                <th>Acción</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if products is empty %}
+                <tr><td colspan="7" class="empty-state">No hay productos que coincidan con la búsqueda.</td></tr>
+            {% endif %}
+
+            {% for product in products %}
+                <tr>
+                    <td><strong>{{ product.name }}</strong></td>
+                    <td>{{ product.product_type_name }}</td>
+                    <td>{{ product.units_per_package|number_format }} unid.</td>
+                    <td>S/ {{ product.price|number_format(2, '.', ',') }}</td>
+                    <td><span class="stock-value">{{ product.current_stock|number_format }}</span></td>
+                    <td>
+                        <span class="badge {{ product.status == 'active' ? 'badge-ok' : 'badge-off' }}">
+                            {{ product.status == 'active' ? 'Activo' : 'Inactivo' }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="table-actions"><a class="table-action" href="{{ site_url('inventory/' ~ product.id ~ '/history') }}" title="Ver histórico del producto">{{ icons.icon('history', 'table-action-icon') }}<span>Histórico</span></a></div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% include 'partials/admin/pagination.html.twig' %}
+</section>
+{% endblock %}

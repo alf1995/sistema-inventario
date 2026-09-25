@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#0b1220">
+    <title>SISTEMA DE INVENTARIO - {{ title }}</title>
+    <link rel="stylesheet" href="{{ asset_url('assets/css/app.css') }}">
+</head>
+<body class="app-body">
+{% set mustChangePassword = session_get('auth_must_change_password') ? true : false %}
+<div class="app-shell">
+    {% include 'partials/admin/sidebar.html.twig' with {mustChangePassword: mustChangePassword} %}
+    <button class="sidebar-overlay" type="button" data-sidebar-overlay aria-label="Cerrar menú" tabindex="-1"></button>
+
+    <div class="app-main">
+        {% include 'partials/admin/topbar.html.twig' %}
+
+        <main class="content-container" id="main-content">
+            {% include 'partials/flash_messages.html.twig' %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% include 'partials/admin/confirm_modal.html.twig' %}
+<script type="module" src="{{ asset_url('assets/js/app.js') }}"></script>
+</body>
+</html>

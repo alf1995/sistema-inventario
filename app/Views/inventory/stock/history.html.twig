@@ -1,0 +1,84 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Histórico: {{ product.name }}</h1>
+        <p>Kardex completo de movimientos confirmados para este producto.</p>
+    </div>
+    <a class="btn btn-secondary" href="{{ site_url('inventory') }}">Volver al inventario</a>
+</div>
+
+<section class="card inventory-summary-card">
+    <div class="stats-grid stats-grid-4">
+        <article class="stat-card">
+            <span>Producto</span>
+            <strong>{{ product.name }}</strong>
+        </article>
+        <article class="stat-card">
+            <span>Tipo</span>
+            <strong>{{ product.product_type_name }}</strong>
+        </article>
+        <article class="stat-card">
+            <span>Unidades por empaque</span>
+            <strong>{{ product.units_per_package|number_format }}</strong>
+        </article>
+        <article class="stat-card">
+            <span>Stock actual</span>
+            <strong>{{ product.current_stock|number_format }}</strong>
+        </article>
+    </div>
+</section>
+
+<section class="card card-spaced">
+    {% include 'partials/admin/table_search.html.twig' with {
+        action: site_url('inventory/' ~ product.id ~ '/history'),
+        clearUrl: site_url('inventory/' ~ product.id ~ '/history'),
+        search: search,
+        placeholder: 'Buscar tipo, usuario, operación u observación...'
+    } %}
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Fecha y hora</th>
+                <th>Operación</th>
+                <th>Tipo</th>
+                <th>Cantidad</th>
+                <th>Stock anterior</th>
+                <th>Stock resultante</th>
+                <th>Usuario</th>
+                <th>Observación</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if movements is empty %}
+                <tr><td colspan="9" class="empty-state">No hay movimientos que coincidan con la búsqueda.</td></tr>
+            {% endif %}
+
+            {% for movement in movements %}
+                <tr>
+                    <td>{{ movement.id }}</td>
+                    <td>{{ movement.movement_at }}</td>
+                    <td>
+                        <span class="badge {{ movement.direction == 'IN' ? 'badge-ok' : 'badge-off' }}">
+                            {{ movement.direction == 'IN' ? 'Ingreso' : 'Salida' }}
+                        </span>
+                    </td>
+                    <td>{{ movement.movement_type_name }}</td>
+                    <td>{{ movement.quantity|number_format }}</td>
+                    <td>{{ movement.stock_before|number_format }}</td>
+                    <td><strong>{{ movement.stock_after|number_format }}</strong></td>
+                    <td>{{ movement.username }}</td>
+                    <td>{{ movement.note|default('') }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% include 'partials/admin/pagination.html.twig' %}
+</section>
+{% endblock %}

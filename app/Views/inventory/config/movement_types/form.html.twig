@@ -1,0 +1,58 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block content %}
+{% set isEdit = mode == 'edit' %}
+{% set old = flash('old_form') ?? {} %}
+{% set id = isEdit ? item.id : 0 %}
+{% set name = old.name ?? (item.name ?? '') %}
+{% set description = old.description ?? (item.description ?? '') %}
+{% set allowedDirection = old.allowed_direction ?? (item.allowed_direction ?? 'BOTH') %}
+{% set status = old.status ?? (item.status ?? 'active') %}
+
+<div class="page-header">
+    <div>
+        <h1>{{ isEdit ? 'Editar tipo de movimiento' : 'Nuevo tipo de movimiento' }}</h1>
+        <p>Indica si este motivo podrá usarse en ingresos, salidas o ambos.</p>
+    </div>
+</div>
+
+<section class="card card-narrow">
+    <form method="post" action="{{ isEdit ? site_url('settings/movement-types/' ~ id) : site_url('settings/movement-types') }}">
+        {{ csrf_field() }}
+
+        <div class="form-stack">
+            <div class="field">
+                <label for="name">Nombre</label>
+                <input id="name" name="name" value="{{ name }}" maxlength="100" required>
+            </div>
+
+            <div class="field">
+                <label for="allowed_direction">Operación permitida</label>
+                <select id="allowed_direction" name="allowed_direction" required>
+                    <option value="IN" {{ allowedDirection == 'IN' ? 'selected' : '' }}>Solo ingresos</option>
+                    <option value="OUT" {{ allowedDirection == 'OUT' ? 'selected' : '' }}>Solo salidas</option>
+                    <option value="BOTH" {{ allowedDirection == 'BOTH' ? 'selected' : '' }}>Ingresos y salidas</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="description">Descripción</label>
+                <textarea id="description" name="description" maxlength="500">{{ description }}</textarea>
+            </div>
+
+            <div class="field">
+                <label for="status">Estado</label>
+                <select id="status" name="status" required>
+                    <option value="active" {{ status == 'active' ? 'selected' : '' }}>Activo</option>
+                    <option value="inactive" {{ status == 'inactive' ? 'selected' : '' }}>Inactivo</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="actions form-actions">
+            <button class="btn" type="submit">{{ isEdit ? 'Guardar cambios' : 'Crear tipo' }}</button>
+            <a class="btn btn-secondary" href="{{ site_url('settings/movement-types') }}">Cancelar</a>
+        </div>
+    </form>
+</section>
+{% endblock %}
