@@ -1,8 +1,56 @@
+# =========================
+# Dependencias
+# =========================
 node_modules/
 vendor/
+
+# =========================
+# Configuración local
+# =========================
 .env
 *.pem
+
+# =========================
+# Sistema operativo
+# =========================
 .DS_Store
+Thumbs.db
+
+# =========================
+# Logs
+# =========================
 *.log
+
+# =========================
+# Builds frontend
+# =========================
 dist/
 build/
+
+# =========================
+# CodeIgniter - Writable
+# =========================
+
+# Cache
+writable/cache/*
+!writable/cache/.gitkeep
+
+# Debug Toolbar
+writable/debugbar/*
+!writable/debugbar/.gitkeep
+
+# Logs
+writable/logs/*
+!writable/logs/.gitkeep
+
+# Sesiones
+writable/session/*
+!writable/session/.gitkeep
+
+# Uploads temporales / generados
+writable/uploads/*
+!writable/uploads/.gitkeep
+
+# Reportes generados
+writable/reports/*
+!writable/reports/.gitkeep
